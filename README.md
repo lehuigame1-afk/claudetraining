@@ -2,7 +2,7 @@
 
 A single-file Kanban board demo for an IT PMO at a **fictitious** bank. Vanilla HTML, CSS and JavaScript. No build, no dependencies, no persistence.
 
-**Live demo:** _(link added after first deployment)_
+**Live demo:** https://lehuigame1-afk.github.io/claudetraining/
 
 <!-- Screenshot placeholder: add docs/screenshot.png and reference it here -->
 
