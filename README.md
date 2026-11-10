@@ -4,7 +4,7 @@ A single-file Kanban board demo for an IT PMO at a **fictitious** bank. Vanilla 
 
 **Live demo:** https://lehuigame1-afk.github.io/claudetraining/
 
-<!-- Screenshot placeholder: add docs/screenshot.png and reference it here -->
+![IT PMO Kanban board screenshot](docs/screenshot.png)
 
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)

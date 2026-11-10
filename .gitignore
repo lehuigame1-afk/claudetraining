@@ -17,3 +17,4 @@ desktop.ini
 *.bak
 scratch/
 _site/
+.playwright-mcp/
