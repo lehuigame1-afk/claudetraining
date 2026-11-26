@@ -3,180 +3,359 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>IT PMO Board</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-KdsI8AuKrOZNa9glW0Omu3nuvEInJ/nLDkPjLSVMp18=' 'sha256-cELOHneUBDB7qIVDgeDZ4A5QH4cJXgjSlBVfbFWl2mU='; style-src 'sha256-Jdxl2/LmV95zyW2xz345AFuwSspGMYb5zBi1ZbuA/Z8='; img-src data:; connect-src https://formsubmit.co; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
+<title>IT PMO Project Scroll</title>
 <style>
-/* ===== Design tokens ===== */
+/* Layout concept: a hanging-scroll programme ledger. Rice-paper ground, cinnabar seals,
+   gold meander (huiwen) borders, ink-brush status colours. Dashboard first, kanban below. */
 :root {
-  --blue-900: #0b2a4a;
-  --blue-700: #14508f;
-  --blue-600: #1b66b3;
-  --blue-100: #e3eef9;
-  --blue-50: #f2f7fc;
-  --ink: #1c2733;
-  --ink-muted: #526273;
-  --line: #d3dce6;
-  --surface: #ffffff;
-  --bg: #eef2f7;
-  --red: #c62828;
-  --red-bg: #fdecec;
-  --amber: #e08a00;
-  --blue: #1b66b3;
-  --grey: #8794a3;
-  --green: #1e7a4a;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --radius: 6px;
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --paper: #f1e7cf;
+  --paper-2: #e8dcbc;
+  --card: #fbf5e4;
+  --ink: #1f1a14;
+  --ink-2: #5a4e3f;
+  --line: #cbb98f;
+  --cinnabar: #a61f1a;
+  --gold: #a07a1c;
+  --jade: #2d6a57;
+  --indigo: #2b4a72;
+  --ochre: #9a6212;
+  --stone: #6f6554;
+  --on-fill: #fbf5e4;
+  --focus: #1b5fd0;
+  --serif: "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "Noto Serif SC", SimSun, "Songti TC", Georgia, "Times New Roman", serif;
+  --kai: "Kaiti SC", "STKaiti", KaiTi, "Noto Serif CJK SC", var(--serif);
+  --sans: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, Consolas, "SFMono-Regular", Menlo, monospace;
+  --radius: 3px;
+  --shadow: 0 1px 0 rgba(60, 40, 10, 0.08), 0 6px 18px -10px rgba(60, 40, 10, 0.35);
 }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #15110d; --paper-2: #1d1711; --card: #231c15; --ink: #f0e4c8; --ink-2: #b9aa8c;
+    --line: #4d3f2d; --cinnabar: #e0564b; --gold: #d2a847; --jade: #4fa88d; --indigo: #7aa3d8;
+    --ochre: #dba43f; --stone: #a89d88; --on-fill: #15110d; --focus: #8ab4ff;
+    --shadow: 0 1px 0 rgba(0,0,0,0.5), 0 6px 18px -10px rgba(0,0,0,0.8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #15110d; --paper-2: #1d1711; --card: #231c15; --ink: #f0e4c8; --ink-2: #b9aa8c;
+  --line: #4d3f2d; --cinnabar: #e0564b; --gold: #d2a847; --jade: #4fa88d; --indigo: #7aa3d8;
+  --ochre: #dba43f; --stone: #a89d88; --on-fill: #15110d; --focus: #8ab4ff;
+  --shadow: 0 1px 0 rgba(0,0,0,0.5), 0 6px 18px -10px rgba(0,0,0,0.8);
+  color-scheme: dark;
+}
+
 * { box-sizing: border-box; }
 body {
-  margin: 0; font-family: var(--font); color: var(--ink); background: var(--bg);
-  font-size: 14px; line-height: 1.4;
+  margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans);
+  font-size: 14px; line-height: 1.45;
 }
 button, input, select, textarea { font: inherit; color: inherit; }
-:focus-visible { outline: 3px solid #f5b400; outline-offset: 2px; }
-
-/* ===== Header ===== */
-.app-header {
-  background: var(--blue-900); color: #fff; padding: var(--space-3) var(--space-4);
-  display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); align-items: center;
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.wrap {
+  max-width: 1280px; margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.wordmark { font-weight: 800; font-size: 20px; letter-spacing: 0.04em; }
-.wordmark span { font-weight: 400; opacity: 0.8; }
-.summary { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; flex: 1; }
-.summary li { background: rgba(255,255,255,0.12); padding: var(--space-1) var(--space-3); border-radius: 999px; font-size: 13px; }
-.summary strong { font-size: 15px; }
-.summary .sum-overdue { background: var(--red); }
+.skip { position: absolute; left: -999px; top: 0; background: var(--cinnabar); color: var(--on-fill); padding: 8px 12px; z-index: 50; }
+.skip:focus { left: 8px; top: 8px; }
+
+/* ---------- Masthead ---------- */
+.masthead { background: var(--paper-2); border-bottom: 1px solid var(--line); }
+.mast-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding-block: 16px 14px; }
+.seal {
+  width: 52px; height: 52px; background: var(--cinnabar); color: var(--on-fill); display: grid; place-items: center;
+  font: 700 30px/1 var(--kai); border-radius: 3px; transform: rotate(-3deg); box-shadow: inset 0 0 0 2px var(--paper-2), inset 0 0 0 3px var(--on-fill);
+  flex: none;
+}
+.brand { display: flex; align-items: center; gap: 14px; flex: 1 1 280px; min-width: 0; }
+.brand h1 { margin: 0; font: 700 26px/1.1 var(--serif); letter-spacing: 0.03em; text-wrap: balance; }
+.brand .sub { margin: 2px 0 0; color: var(--ink-2); font: 15px var(--kai); letter-spacing: 0.18em; }
+.mast-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.today { font: 13px var(--serif); color: var(--ink-2); }
+.reset-note { flex-basis: 100%; margin: 0; font-size: 12px; color: var(--ink-2); }
+.meander {
+  height: 12px; background: var(--gold); opacity: 0.75;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 12'%3E%3Cpath d='M1 11V1h14v8H5V5h6' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E") repeat-x 0 0 / 16px 12px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 12'%3E%3Cpath d='M1 11V1h14v8H5V5h6' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E") repeat-x 0 0 / 16px 12px;
+}
+
+/* ---------- Buttons ---------- */
 .btn {
-  border: 1px solid var(--blue-600); background: var(--blue-600); color: #fff;
-  padding: var(--space-2) var(--space-4); border-radius: var(--radius); cursor: pointer; font-weight: 600;
+  border: 1px solid var(--cinnabar); background: var(--cinnabar); color: var(--on-fill);
+  padding: 8px 16px; border-radius: var(--radius); cursor: pointer; font-weight: 600; letter-spacing: 0.02em;
 }
-.btn:hover { background: var(--blue-700); }
+.btn:hover { filter: brightness(1.1); }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-secondary { background: var(--surface); color: var(--blue-700); }
-.btn-secondary:hover { background: var(--blue-100); }
-.app-header .btn { background: #fff; color: var(--blue-900); border-color: #fff; }
-.app-header .btn:hover { background: var(--blue-100); }
-.reset-note { width: 100%; margin: 0; font-size: 12px; opacity: 0.8; }
+.btn-ghost { background: transparent; color: var(--cinnabar); }
+.btn-ghost:hover { background: var(--paper-2); filter: none; }
 
-/* ===== Filters ===== */
-.filters {
-  display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: end;
-  padding: var(--space-3) var(--space-4); background: var(--surface); border-bottom: 1px solid var(--line);
-}
-.filters label { display: flex; flex-direction: column; font-size: 12px; font-weight: 600; color: var(--ink-muted); gap: var(--space-1); }
-.filters select, .filters input { padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; min-width: 170px; }
+/* ---------- Sections ---------- */
+.sect { padding-block: 26px 4px; }
+.sect-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 14px; }
+.sect-head h2 { margin: 0; display: flex; align-items: baseline; gap: 12px; font-family: var(--serif); }
+.sect-head .zh { font-size: 28px; font-weight: 700; letter-spacing: 0.12em; color: var(--cinnabar); }
+.sect-head .en { font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); font-family: var(--sans); }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; min-width: 0; position: relative; }
+.panel::before { content: ""; position: absolute; inset: 4px; border: 1px solid var(--line); border-radius: 2px; pointer-events: none; opacity: 0.55; }
+.panel h3 { margin: 0 0 10px; font: 700 16px var(--serif); letter-spacing: 0.06em; }
+.panel h3 small { font: 12px var(--sans); color: var(--ink-2); letter-spacing: 0.06em; margin-left: 6px; }
+.grid-2 { display: grid; grid-template-columns: minmax(300px, 5fr) minmax(0, 7fr); gap: 16px; }
 
-/* ===== Board ===== */
-.board { display: flex; gap: var(--space-4); padding: var(--space-4); align-items: flex-start; }
-.column {
-  flex: 1 1 0; min-width: 0; background: var(--blue-50); border: 2px solid transparent;
-  border-radius: var(--radius); padding: var(--space-3); min-height: 200px;
-}
-.column.drop-target { border-color: var(--blue-600); background: var(--blue-100); }
-.column-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); }
-.column-header h2 { font-size: 15px; margin: 0; color: var(--blue-900); }
-.column-sub { font-size: 11px; color: var(--ink-muted); }
-.count { background: var(--blue-700); color: #fff; border-radius: 999px; padding: 1px 10px; font-weight: 700; font-size: 12px; }
-.cards { display: flex; flex-direction: column; gap: var(--space-3); min-height: 60px; }
-.empty { color: var(--ink-muted); font-size: 12px; text-align: center; padding: var(--space-4) 0; }
+/* ---------- Status colours ---------- */
+.st-backlog { --c: var(--stone); }
+.st-progress { --c: var(--indigo); }
+.st-blocked { --c: var(--ochre); }
+.st-done { --c: var(--jade); }
+.seg { fill: var(--c); }
+.arc { stroke: var(--c); }
 
-/* ===== Cards ===== */
-.card {
-  background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--grey);
-  border-radius: var(--radius); padding: var(--space-3); cursor: grab; position: relative;
+/* ---------- KPI tiles ---------- */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.tile {
+  background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--c, var(--gold)); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; min-height: 104px;
+  animation: rise 0.6s both;
 }
+.tile:nth-child(2) { animation-delay: 0.06s; } .tile:nth-child(3) { animation-delay: 0.12s; }
+.tile:nth-child(4) { animation-delay: 0.18s; } .tile:nth-child(5) { animation-delay: 0.24s; } .tile:nth-child(6) { animation-delay: 0.3s; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.tile .lab { font-size: 12px; color: var(--ink-2); letter-spacing: 0.05em; }
+.tile .lab .zh { font: 700 17px var(--kai); color: var(--ink); letter-spacing: 0.15em; margin-right: 6px; }
+.num { font: 700 40px/1 var(--serif); font-variant-numeric: tabular-nums; color: var(--c, var(--ink)); }
+.tile-bad { --c: var(--cinnabar); }
+.tile-ring { flex-direction: row; align-items: center; gap: 10px; --c: var(--jade); }
+.ring { width: 88px; height: 88px; flex: none; }
+.ring .track { fill: none; stroke: var(--line); stroke-width: 10; }
+.ring .prog { fill: none; stroke: var(--jade); stroke-width: 10; }
+.ring text { fill: var(--ink); font: 700 24px var(--serif); text-anchor: middle; font-variant-numeric: tabular-nums; }
+
+/* ---------- Donut + legend + upcoming ---------- */
+.donut-row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.donut { width: 150px; height: 150px; flex: none; }
+.donut .track { fill: none; stroke: var(--line); stroke-width: 16; opacity: 0.5; }
+.donut .arc { fill: none; stroke-width: 16; }
+.donut .c-num { fill: var(--ink); font: 700 26px var(--serif); text-anchor: middle; }
+.donut .c-lab { fill: var(--ink-2); font: 9px var(--sans); text-anchor: middle; letter-spacing: 0.1em; }
+.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; flex: 1 1 130px; min-width: 0; }
+.legend li { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.swatch { width: 12px; height: 12px; background: var(--c); border-radius: 2px; flex: none; }
+.legend b { margin-left: auto; font-variant-numeric: tabular-nums; }
+.upcoming { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.upcoming li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 8px 0 0; border-top: 1px dashed var(--line); font-size: 13px; }
+.upcoming .t { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.upcoming .m { grid-column: 1; color: var(--ink-2); font-size: 12px; }
+.upcoming .d { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-weight: 700; font-size: 12px; white-space: nowrap; }
+.upcoming .late { color: var(--cinnabar); }
+
+/* ---------- Project rows ---------- */
+.proj-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.proj { display: grid; grid-template-columns: minmax(150px, 210px) minmax(0, 1fr) auto; gap: 6px 14px; align-items: center; }
+.proj-name { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.proj-name button { all: unset; cursor: pointer; font-weight: 600; text-decoration: underline dotted var(--line); text-underline-offset: 3px; overflow-wrap: anywhere; }
+.proj-name button:hover { color: var(--cinnabar); }
+.proj-name button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.stamp { flex: none; width: 24px; height: 24px; display: grid; place-items: center; font: 700 14px/1 var(--kai); border: 1.5px solid var(--c); color: var(--c); border-radius: 2px; transform: rotate(-4deg); }
+.h-good { --c: var(--jade); } .h-watch { --c: var(--ochre); } .h-bad { --c: var(--cinnabar); } .h-none { --c: var(--stone); }
+.proj-bar { width: 100%; height: 16px; display: block; }
+.proj-bar .bg { fill: var(--line); opacity: 0.45; }
+.proj-meta { font-size: 12px; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.proj-meta b { color: var(--ink); }
+.proj-meta .late { color: var(--cinnabar); font-weight: 700; }
+.legend-inline { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 14px 0 0; padding: 0; list-style: none; font-size: 12px; color: var(--ink-2); }
+.legend-inline li { display: flex; align-items: center; gap: 6px; }
+
+/* ---------- Timeline ---------- */
+.tl-scroll { overflow-x: auto; }
+.tl { display: block; width: 100%; min-width: 900px; height: auto; }
+.tl .lane { fill: var(--paper-2); opacity: 0.55; }
+.tl .grid { stroke: var(--line); stroke-width: 1; stroke-dasharray: 2 4; }
+.tl .mlab { fill: var(--ink-2); font: 11px var(--sans); letter-spacing: 0.06em; }
+.tl .plab { fill: var(--ink); font: 700 12px var(--serif); }
+.tl .bar { fill: var(--c); }
+.tl .bar.late { stroke: var(--cinnabar); stroke-width: 2; animation: pulse 2.2s ease-in-out infinite; }
+.tl .btxt { fill: var(--on-fill); font: 600 9.5px var(--mono); pointer-events: none; }
+.tl .today-line { stroke: var(--cinnabar); stroke-width: 1.6; stroke-dasharray: 5 3; }
+.tl .today-tag { fill: var(--cinnabar); }
+.tl .today-txt { fill: var(--on-fill); font: 700 10.5px var(--serif); text-anchor: middle; letter-spacing: 0.08em; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+/* ---------- Filters + board ---------- */
+.filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 14px; }
+.filters label { display: flex; flex-direction: column; font-size: 12px; font-weight: 600; color: var(--ink-2); gap: 4px; }
+.filters select, .filters input, .field input, .field select, .field textarea {
+  padding: 7px 9px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); min-width: 0;
+}
+.filters select, .filters input { min-width: 170px; }
+.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; align-items: start; padding-bottom: 24px; }
+.column { background: var(--paper-2); border: 2px solid transparent; border-top: 4px double var(--gold); border-radius: var(--radius); padding: 12px; min-height: 180px; min-width: 0; }
+.column.drop-target { border-color: var(--cinnabar); background: var(--card); }
+.column-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
+.column-header h2 { font: 700 17px var(--serif); margin: 0; letter-spacing: 0.04em; }
+.column-header h2 .zh { font-family: var(--kai); color: var(--c); margin-right: 6px; letter-spacing: 0.15em; }
+.column-sub { font-size: 11px; color: var(--ink-2); }
+.count { background: var(--c); color: var(--on-fill); border-radius: 999px; padding: 1px 10px; font-weight: 700; font-size: 12px; }
+.cards { display: flex; flex-direction: column; gap: 12px; min-height: 60px; }
+.empty { color: var(--ink-2); font: 14px var(--kai); text-align: center; padding: 16px 0; letter-spacing: 0.1em; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; cursor: grab; position: relative; box-shadow: var(--shadow); }
 .card.dragging { opacity: 0.4; }
-.card.p-critical { border-left-color: var(--red); }
-.card.p-high { border-left-color: var(--amber); }
-.card.p-medium { border-left-color: var(--blue); }
-.card.p-low { border-left-color: var(--grey); }
-.card-top { display: flex; justify-content: space-between; gap: var(--space-2); align-items: start; }
-.card-id { font-size: 11px; font-weight: 700; color: var(--ink-muted); font-family: ui-monospace, Consolas, monospace; }
-.card-title { margin: var(--space-1) 0; font-size: 14px; font-weight: 600; word-wrap: break-word; }
-.card-meta { font-size: 12px; color: var(--ink-muted); margin: 2px 0; }
-.card-row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin-top: var(--space-2); }
-.pill { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; }
-.pill-critical { color: var(--red); background: var(--red-bg); }
-.pill-high { color: #9a5d00; background: #fff4de; }
-.pill-medium { color: var(--blue-700); background: var(--blue-100); }
-.pill-low { color: #55616f; background: #eef0f3; }
-.tag { font-size: 11px; background: #eef0f3; padding: 1px 8px; border-radius: var(--radius); }
-.badge-overdue { font-size: 11px; font-weight: 700; color: var(--red); background: var(--red-bg); padding: 1px 8px; border-radius: var(--radius); }
-.icon-btn { border: 0; background: transparent; cursor: pointer; font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: var(--radius); color: var(--ink-muted); }
-.icon-btn:hover { background: var(--red-bg); color: var(--red); }
-.move-btn { border: 1px solid var(--line); background: #fff; border-radius: var(--radius); cursor: pointer; font-size: 12px; padding: 2px 8px; }
-.move-btn:hover { background: var(--blue-100); }
-.confirm-delete { display: flex; gap: var(--space-2); align-items: center; font-size: 12px; font-weight: 600; color: var(--red); }
-.confirm-delete button { border: 1px solid var(--line); background: #fff; border-radius: var(--radius); cursor: pointer; padding: 2px 10px; }
-.move-menu { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: var(--space-2); }
-.move-menu button { border: 1px solid var(--blue-600); background: #fff; color: var(--blue-700); border-radius: var(--radius); cursor: pointer; font-size: 12px; padding: 2px 8px; }
-.move-menu button:hover { background: var(--blue-100); }
+.card-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.card-id { font: 700 11px var(--mono); color: var(--ink-2); }
+.card-title { margin: 6px 0 4px; font: 700 15px/1.3 var(--serif); overflow-wrap: anywhere; }
+.card-meta { font-size: 12px; color: var(--ink-2); margin: 2px 0; overflow-wrap: anywhere; }
+.card-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.pseal { width: 22px; height: 22px; display: grid; place-items: center; font: 700 13px/1 var(--kai); background: var(--p); color: var(--on-fill); border-radius: 2px; transform: rotate(-3deg); }
+.p-critical { --p: var(--cinnabar); } .p-high { --p: var(--ochre); } .p-medium { --p: var(--indigo); } .p-low { --p: var(--stone); }
+.pill { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--p); color: var(--p); }
+.tag { font-size: 11px; background: var(--paper-2); padding: 1px 8px; border-radius: var(--radius); }
+.badge-overdue { font-size: 11px; font-weight: 700; color: var(--cinnabar); border: 1px solid var(--cinnabar); padding: 0 8px; border-radius: var(--radius); }
+.icon-btn { border: 0; background: transparent; cursor: pointer; font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: var(--radius); color: var(--ink-2); }
+.icon-btn:hover { background: var(--paper-2); color: var(--cinnabar); }
+.move-btn, .confirm-delete button, .move-menu button { border: 1px solid var(--line); background: var(--card); border-radius: var(--radius); cursor: pointer; font-size: 12px; padding: 2px 8px; }
+.move-btn:hover, .confirm-delete button:hover, .move-menu button:hover { background: var(--paper-2); }
+.confirm-delete { display: flex; gap: 8px; align-items: center; font-size: 12px; font-weight: 600; color: var(--cinnabar); }
+.move-menu { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.move-menu button { border-color: var(--indigo); color: var(--indigo); }
 
-/* ===== Modal + form ===== */
-.modal-backdrop { position: fixed; inset: 0; background: rgba(11,42,74,0.55); display: none; align-items: flex-start; justify-content: center; overflow-y: auto; padding: var(--space-5) var(--space-3); z-index: 10; }
+/* ---------- Modal + form ---------- */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(20, 12, 4, 0.6); display: none; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 24px 12px; z-index: 30; }
 .modal-backdrop.open { display: flex; }
-.modal { background: #fff; border-radius: var(--radius); width: 100%; max-width: 560px; padding: var(--space-5); }
-.modal h2 { margin-top: 0; color: var(--blue-900); }
-.field { display: flex; flex-direction: column; margin-bottom: var(--space-3); }
-.field label { font-weight: 600; margin-bottom: var(--space-1); }
-.field input, .field select, .field textarea { padding: 8px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+.modal { background: var(--card); border: 1px solid var(--gold); outline: 1px solid var(--line); outline-offset: -6px; border-radius: var(--radius); width: 100%; max-width: 560px; padding: 24px; }
+.modal h2 { margin: 0 0 14px; font: 700 22px var(--serif); color: var(--cinnabar); letter-spacing: 0.05em; }
+.field { display: flex; flex-direction: column; margin-bottom: 12px; }
+.field label { font-weight: 600; margin-bottom: 4px; }
 .field textarea { min-height: 80px; resize: vertical; }
-.field.invalid input, .field.invalid select, .field.invalid textarea { border-color: var(--red); }
-.error-text { color: var(--red); font-size: 12px; min-height: 0; margin-top: var(--space-1); }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
-.form-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-4); }
+.field.invalid input, .field.invalid select, .field.invalid textarea { border-color: var(--cinnabar); }
+.error-text { color: var(--cinnabar); font-size: 12px; margin-top: 4px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
 
-/* ===== Toasts ===== */
-.toasts { position: fixed; right: var(--space-4); bottom: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); z-index: 20; }
-.toast { background: var(--blue-900); color: #fff; padding: var(--space-3) var(--space-4); border-radius: var(--radius); max-width: 340px; border-left: 6px solid var(--green); }
-.toast.warn { border-left-color: var(--amber); }
+/* ---------- Toasts + footer ---------- */
+.toasts { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(max(16px, env(safe-area-inset-bottom, 0px)) + 84px); display: flex; flex-direction: column; gap: 8px; z-index: 40; }
+.toast { background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: var(--radius); max-width: 340px; border-left: 6px solid var(--jade); }
+.toast.warn { border-left-color: var(--ochre); }
+/* ---------- Panda IT assistant widget ---------- */
+.assist { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px)); z-index: 35; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.assist-fab { width: 68px; height: 68px; padding: 0; border-radius: 50%; border: 2px solid var(--gold); background: var(--card); box-shadow: var(--shadow); cursor: pointer; display: grid; place-items: center; animation: assist-bob 3.2s ease-in-out infinite; }
+.assist-fab:hover { border-color: var(--cinnabar); }
+.assist-fab:focus-visible, .assist-wa:focus-visible, .assist-x:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.assist-fab svg { width: 58px; height: 58px; display: block; }
+.assist-bubble { position: relative; width: 280px; max-width: calc(100vw - 32px); background: var(--card); color: var(--ink); border: 1px solid var(--gold); outline: 1px solid var(--line); outline-offset: -5px; border-radius: var(--radius); padding: 16px 16px 14px; box-shadow: var(--shadow); }
+.assist-bubble[hidden] { display: none; }
+.assist-bubble h2 { margin: 0 24px 6px 0; font: 700 16px var(--serif); color: var(--cinnabar); letter-spacing: 0.05em; }
+.assist-bubble p { margin: 0 0 12px; font-size: 14px; }
+.assist-x { position: absolute; top: 6px; right: 8px; width: 28px; height: 28px; border: 0; background: transparent; color: var(--ink-2); font-size: 20px; line-height: 1; cursor: pointer; }
+.assist-wa { display: inline-block; padding: 9px 14px; border-radius: var(--radius); background: var(--jade); color: var(--on-fill); font-weight: 600; text-decoration: none; }
+.assist-wa:hover { filter: brightness(1.1); }
+.assist-note { margin-top: 8px; font-size: 12px; color: var(--ink-2); }
+@keyframes assist-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.foot { text-align: center; color: var(--ink-2); font: 13px var(--kai); letter-spacing: 0.2em; padding-block: 4px 28px; }
 
-/* ===== Responsive ===== */
-@media (max-width: 767px) {
-  .board { flex-direction: column; align-items: stretch; }
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .grid-2 { grid-template-columns: minmax(0, 1fr); }
+  .mast-side { align-items: flex-start; }
+}
+@media (max-width: 640px) {
+  .proj { grid-template-columns: minmax(0, 1fr); }
   .form-row { grid-template-columns: 1fr; }
   .filters select, .filters input { min-width: 0; width: 100%; }
   .filters label { flex: 1 1 100%; }
+  .brand h1 { font-size: 22px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none; animation: none; } }
 </style>
 </head>
 <body>
+<a class="skip" href="#board">Skip to kanban board</a>
 
-<!-- ===== Header: wordmark, live summary strip, add button ===== -->
-<header class="app-header">
-  <div class="wordmark">IT PMO <span>Board</span></div>
-  <ul class="summary" id="summary" aria-label="Board summary"></ul>
-  <button type="button" class="btn" id="openAdd">+ Add Task</button>
-  <p class="reset-note">Demo data only: board lives in memory and resets to the seeded tasks when the page is refreshed.</p>
+<header class="masthead">
+  <div class="wrap mast-inner">
+    <div class="brand">
+      <div class="seal" aria-hidden="true">管</div>
+      <div>
+        <h1>IT PMO Project Scroll</h1>
+        <p class="sub">项目管理卷轴</p>
+      </div>
+    </div>
+    <div class="mast-side">
+      <div class="today" id="today"></div>
+      <button type="button" class="btn" id="openAdd">+ Add Task</button>
+    </div>
+    <p class="reset-note">Demo data only: the board lives in memory and resets to the seeded tasks when the page is refreshed.</p>
+  </div>
+  <div class="meander" aria-hidden="true"></div>
 </header>
 
-<!-- ===== Filter bar ===== -->
-<section class="filters" aria-label="Filters">
-  <label for="fProject">Project
-    <select id="fProject"><option value="">All projects</option></select>
-  </label>
-  <label for="fAssignee">Assignee contains
-    <input type="text" id="fAssignee" placeholder="e.g. Tan">
-  </label>
-  <label for="fPriority">Priority
-    <select id="fPriority"><option value="">All priorities</option></select>
-  </label>
-  <button type="button" class="btn btn-secondary" id="clearFilters">Clear</button>
-</section>
+<main>
+  <section class="wrap sect" aria-labelledby="h-overview">
+    <div class="sect-head">
+      <h2 id="h-overview"><span class="zh">总览</span><span class="en">Programme overview</span></h2>
+      <button type="button" class="btn btn-ghost" id="replay">↻ Replay animation</button>
+    </div>
+    <div class="kpis" id="kpis"></div>
+  </section>
 
-<!-- ===== Kanban board (columns rendered by renderBoard) ===== -->
-<main class="board" id="board" aria-label="Kanban board"></main>
+  <section class="wrap sect" aria-labelledby="h-status">
+    <div class="sect-head">
+      <h2 id="h-status"><span class="zh">状态</span><span class="en">Project status</span></h2>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <h3>任务分布 <small>Tasks by status</small></h3>
+        <div id="donut"></div>
+        <h3 class="up-h">近期节点 <small>Next deadlines</small></h3>
+        <ul class="upcoming" id="upcoming"></ul>
+      </div>
+      <div class="panel">
+        <h3>项目进度 <small>Select a project to filter the board</small></h3>
+        <ul class="proj-list" id="projects"></ul>
+        <ul class="legend-inline" id="projLegend"></ul>
+      </div>
+    </div>
+  </section>
 
-<!-- ===== Add Task modal ===== -->
+  <section class="wrap sect" aria-labelledby="h-timeline">
+    <div class="sect-head">
+      <h2 id="h-timeline"><span class="zh">时间线</span><span class="en">Timeline by project</span></h2>
+    </div>
+    <div class="panel">
+      <div class="tl-scroll" id="timeline"></div>
+      <ul class="legend-inline" id="tlLegend"></ul>
+    </div>
+  </section>
+
+  <section class="wrap sect" aria-labelledby="h-board">
+    <div class="sect-head">
+      <h2 id="h-board"><span class="zh">看板</span><span class="en">Kanban board</span></h2>
+    </div>
+    <div class="filters" role="group" aria-label="Filters">
+      <label for="fProject">Project
+        <select id="fProject"><option value="">All projects</option></select>
+      </label>
+      <label for="fAssignee">Assignee contains
+        <input type="text" id="fAssignee" placeholder="e.g. Tan" maxlength="60" autocomplete="off">
+      </label>
+      <label for="fPriority">Priority
+        <select id="fPriority"><option value="">All priorities</option></select>
+      </label>
+      <button type="button" class="btn btn-ghost" id="clearFilters">Clear</button>
+    </div>
+    <div class="board" id="board" aria-label="Kanban board"></div>
+  </section>
+</main>
+<p class="foot">事竟成 · 凡事预则立</p>
+<div class="meander" aria-hidden="true"></div>
+
 <div class="modal-backdrop" id="modalBackdrop">
   <section class="modal" role="dialog" aria-modal="true" aria-labelledby="addTitle">
     <h2 id="addTitle">Add Task</h2>
-    <form id="taskForm" novalidate>
+    <form id="taskForm" novalidate autocomplete="off">
       <div class="field" data-field="title">
         <label for="title">Task Title *</label>
         <input type="text" id="title" name="title" maxlength="80" aria-describedby="err-title">
@@ -202,7 +381,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
       <div class="form-row">
         <div class="field" data-field="assignee">
           <label for="assignee">Assignee *</label>
-          <input type="text" id="assignee" name="assignee" aria-describedby="err-assignee">
+          <input type="text" id="assignee" name="assignee" maxlength="60" aria-describedby="err-assignee">
           <div class="error-text" id="err-assignee"></div>
         </div>
         <div class="field" data-field="priority">
@@ -224,38 +403,70 @@ button, input, select, textarea { font: inherit; color: inherit; }
         </div>
       </div>
       <div class="form-actions">
-        <button type="button" class="btn btn-secondary" id="cancelAdd">Cancel</button>
+        <button type="button" class="btn btn-ghost" id="cancelAdd">Cancel</button>
         <button type="submit" class="btn" id="submitBtn">Add Task</button>
       </div>
     </form>
   </section>
 </div>
 
-<!-- ===== Toast region ===== -->
 <div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<div class="assist" id="assist">
+  <div class="assist-bubble" id="assistBubble" role="region" aria-label="IT assistant" hidden>
+    <button type="button" class="assist-x" id="assistClose" aria-label="Close IT assistant">&times;</button>
+    <h2>IT 助手 · IT Assistant</h2>
+    <p>I am your IT assistant, how can I help you?</p>
+    <a class="assist-wa" id="assistWa" href="https://wa.me/658888888" target="_blank" rel="noopener noreferrer">Chat with IT on WhatsApp</a>
+    <div class="assist-note" id="assistNote" hidden>Voice is not supported in this browser.</div>
+  </div>
+  <button type="button" class="assist-fab" id="assistFab" aria-expanded="false" aria-controls="assistBubble" aria-label="Open IT assistant (plays a voice greeting)" title="IT Assistant">
+    <svg viewBox="0 0 80 80" aria-hidden="true" focusable="false">
+      <path d="M12 80 Q14 63 40 61 Q66 63 68 80 Z" fill="#a61f1a"/>
+      <path d="M31 62 L40 75 L49 62" fill="none" stroke="#d2a847" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="19" cy="35" r="8" fill="#1f1a14"/><circle cx="61" cy="35" r="8" fill="#1f1a14"/>
+      <circle cx="40" cy="43" r="23" fill="#fbf5e4" stroke="#1f1a14" stroke-width="1.5"/>
+      <ellipse cx="30" cy="43" rx="6" ry="8" fill="#1f1a14" transform="rotate(20 30 43)"/>
+      <ellipse cx="50" cy="43" rx="6" ry="8" fill="#1f1a14" transform="rotate(-20 50 43)"/>
+      <circle cx="31" cy="42" r="2" fill="#fbf5e4"/><circle cx="49" cy="42" r="2" fill="#fbf5e4"/>
+      <ellipse cx="40" cy="51" rx="4" ry="3" fill="#1f1a14"/>
+      <path d="M40 54 Q40 58 35 58 M40 54 Q40 58 45 58" fill="none" stroke="#1f1a14" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M36 56 Q28 58 24 64 M44 56 Q52 58 56 64" fill="none" stroke="#1f1a14" stroke-width="1.5" stroke-linecap="round"/>
+      <rect x="6" y="15" width="22" height="5" rx="2.5" fill="#1f1a14"/><rect x="52" y="15" width="22" height="5" rx="2.5" fill="#1f1a14"/>
+      <rect x="27" y="6" width="26" height="19" rx="6" fill="#1f1a14"/>
+      <rect x="27" y="19" width="26" height="3.5" fill="#d2a847"/>
+      <circle cx="40" cy="13" r="2.2" fill="#d2a847"/>
+    </svg>
+  </button>
+</div>
 
 <script>
 "use strict";
 
 /* =====================================================================
    CONFIG
-   FormSubmit requires a ONE-TIME ACTIVATION: the first submission sends a
-   confirmation email to the address below. Notifications are only
-   delivered after the link in that email is clicked.
-   Swap in your own address here (the only place it is used).
+   FormSubmit needs a ONE-TIME ACTIVATION: the first submission sends a
+   confirmation email to the address that owns the alias. Do NOT put a raw
+   email here (the repo is public): use the random alias FormSubmit gives you
+   after activation. While the placeholder is
+   in place, no network request is made at all.
    ===================================================================== */
-const FORMSUBMIT_ENDPOINT = "https://formsubmit.co/ajax/YOUR_EMAIL@example.com";
+const FORMSUBMIT_ENDPOINT = "https://formsubmit.co/ajax/YOUR_ALIAS_HERE";
 
-/* ===== Constants ===== */
-const COLUMNS = [
-  { key: "Backlog", sub: "Logged, not yet scheduled" },
-  { key: "In Progress", sub: "Actively being worked" },
-  { key: "Blocked", sub: "Waiting on dependency, vendor or approval" },
-  { key: "Done", sub: "Completed / closed" }
-];
-const PROJECTS = ["Core Banking Upgrade", "Digital Channels", "Cybersecurity Uplift", "Data & Analytics", "Infrastructure & Cloud", "Vendor Management"];
-const CATEGORIES = ["Application Development", "Infrastructure", "Cybersecurity", "Data", "Compliance", "Vendor"];
-const PRIORITIES = ["Critical", "High", "Medium", "Low"];
+/* ===== Constants (frozen so nothing can tamper with them at runtime) ===== */
+const COLUMNS = Object.freeze([
+  Object.freeze({ key: "Backlog", zh: "待办", cls: "st-backlog", sub: "Logged, not yet scheduled" }),
+  Object.freeze({ key: "In Progress", zh: "进行", cls: "st-progress", sub: "Actively being worked" }),
+  Object.freeze({ key: "Blocked", zh: "受阻", cls: "st-blocked", sub: "Waiting on dependency, vendor or approval" }),
+  Object.freeze({ key: "Done", zh: "完成", cls: "st-done", sub: "Completed / closed" })
+]);
+const STATUS_KEYS = Object.freeze(COLUMNS.map(function (c) { return c.key; }));
+const PROJECTS = Object.freeze(["Core Banking Upgrade", "Digital Channels", "Cybersecurity Uplift", "Data & Analytics", "Infrastructure & Cloud", "Vendor Management"]);
+const CATEGORIES = Object.freeze(["Application Development", "Infrastructure", "Cybersecurity", "Data", "Compliance", "Vendor"]);
+const PRIORITIES = Object.freeze(["Critical", "High", "Medium", "Low"]);
+const PRIORITY_ZH = Object.freeze({ Critical: "急", High: "高", Medium: "中", Low: "低" });
+const LIMITS = Object.freeze({ tasks: 200, title: 80, description: 500, assignee: 60, maxDueDays: 3650 });
+const REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ===== State: single source of truth (in memory only) ===== */
 const state = {
@@ -264,7 +475,8 @@ const state = {
   nextId: 1,
   pendingDeleteId: null,
   openMoveId: null,
-  draggingId: null
+  draggingId: null,
+  lastAddAt: 0
 };
 
 /* ===== Helpers ===== */
@@ -275,32 +487,41 @@ function escapeHtml(value) {
 }
 function pad(n) { return String(n).padStart(2, "0"); }
 function dateToISO(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+function parseISO(iso) { const p = iso.split("-").map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+function isValidISO(s) { return typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && dateToISO(parseISO(s)) === s; }
 function todayISO() { return dateToISO(new Date()); }
 function offsetDate(days) { const d = new Date(); d.setDate(d.getDate() + days); return dateToISO(d); }
+function daysFromToday(iso) { return Math.round((parseISO(iso) - parseISO(todayISO())) / 86400000); }
 function formatId(n) { return "UOB-ITPM-" + String(n).padStart(4, "0"); }
 function isOverdue(task) { return task.status !== "Done" && task.dueDate < todayISO(); }
 function formatDate(iso) {
-  const p = iso.split("-");
-  const d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
-  return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  return parseISO(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 }
+function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+function cleanText(value, max, keepNewlines) {
+  const ctl = keepNewlines ? "\\u0000-\\u0009\\u000b-\\u001f\\u007f" : "\\u0000-\\u001f\\u007f";
+  const re = new RegExp("[" + ctl + "\\u2028\\u2029]", "g");
+  return String(value == null ? "" : value).replace(re, " ").trim().slice(0, max);
+}
+function columnOf(key) { return COLUMNS.find(function (c) { return c.key === key; }); }
+function findTask(id) { return state.tasks.find(function (t) { return t.id === id; }); }
 
 /* ===== Seed data (dates are relative to today so overdue always demos) ===== */
 function seedTasks() {
   const seed = [
-    ["Migrate FX pricing service to AWS", "Lift and shift the FX pricing engine to the approved landing zone.", "Infrastructure & Cloud", "Infrastructure", "Priya Nair", "High", 21, "In Progress"],
-    ["Patch CVE-2025-XXXX on branch teller VDI", "Roll out vendor security patch to all branch teller VDI pools.", "Cybersecurity Uplift", "Cybersecurity", "Marcus Tan", "Critical", -3, "In Progress"],
-    ["UAT sign-off for mobile onboarding release 4.2", "Collect business sign-off for the onboarding flow changes.", "Digital Channels", "Application Development", "Aisha Rahman", "High", 5, "Blocked"],
-    ["Decommission legacy loan origination batch", "Retire nightly batch jobs after cutover validation.", "Core Banking Upgrade", "Application Development", "Daniel Lim", "Medium", 45, "Backlog"],
-    ["Renew core middleware support contract", "Negotiate renewal and confirm SLA terms with vendor.", "Vendor Management", "Vendor", "Grace Ong", "Medium", -7, "Blocked"],
-    ["Build customer attrition dashboard", "Self-service dashboard for relationship managers.", "Data & Analytics", "Data", "Kevin Chua", "Low", 30, "Backlog"],
-    ["Quarterly access recertification evidence pack", "Compile evidence for internal audit review.", "Cybersecurity Uplift", "Compliance", "Sofia Hernandez", "High", 12, "Backlog"],
-    ["Upgrade API gateway to v3", "Completed in production with zero downtime.", "Digital Channels", "Infrastructure", "Ethan Wong", "Medium", -10, "Done"]
+    ["Migrate FX pricing service to AWS", "Lift and shift the FX pricing engine to the approved landing zone.", "Infrastructure & Cloud", "Infrastructure", "Priya Nair", "High", -20, 21, "In Progress"],
+    ["Patch CVE-2025-XXXX on branch teller VDI", "Roll out vendor security patch to all branch teller VDI pools.", "Cybersecurity Uplift", "Cybersecurity", "Marcus Tan", "Critical", -12, -3, "In Progress"],
+    ["UAT sign-off for mobile onboarding release 4.2", "Collect business sign-off for the onboarding flow changes.", "Digital Channels", "Application Development", "Aisha Rahman", "High", -8, 5, "Blocked"],
+    ["Decommission legacy loan origination batch", "Retire nightly batch jobs after cutover validation.", "Core Banking Upgrade", "Application Development", "Daniel Lim", "Medium", 10, 45, "Backlog"],
+    ["Renew core middleware support contract", "Negotiate renewal and confirm SLA terms with vendor.", "Vendor Management", "Vendor", "Grace Ong", "Medium", -30, -7, "Blocked"],
+    ["Build customer attrition dashboard", "Self-service dashboard for relationship managers.", "Data & Analytics", "Data", "Kevin Chua", "Low", 5, 30, "Backlog"],
+    ["Quarterly access recertification evidence pack", "Compile evidence for internal audit review.", "Cybersecurity Uplift", "Compliance", "Sofia Hernandez", "High", 0, 12, "Backlog"],
+    ["Upgrade API gateway to v3", "Completed in production with zero downtime.", "Digital Channels", "Infrastructure", "Ethan Wong", "Medium", -40, -10, "Done"]
   ];
   seed.forEach(function (s) {
     state.tasks.push({
       id: formatId(state.nextId++), title: s[0], description: s[1], project: s[2], category: s[3],
-      assignee: s[4], priority: s[5], dueDate: offsetDate(s[6]), status: s[7]
+      assignee: s[4], priority: s[5], startDate: offsetDate(s[6]), dueDate: offsetDate(s[7]), status: s[8]
     });
   });
 }
@@ -316,49 +537,274 @@ function applyFilters() {
   });
 }
 
-/* ===== Rendering ===== */
-function renderSummary() {
-  const counts = {};
-  COLUMNS.forEach(function (c) { counts[c.key] = 0; });
-  state.tasks.forEach(function (t) { counts[t.status]++; });
-  const overdue = state.tasks.filter(isOverdue).length;
-  let html = '<li>Total <strong>' + state.tasks.length + '</strong></li>';
-  COLUMNS.forEach(function (c) { html += '<li>' + escapeHtml(c.key) + ' <strong>' + counts[c.key] + '</strong></li>'; });
-  html += '<li class="sum-overdue">Overdue <strong>' + overdue + '</strong></li>';
-  document.getElementById("summary").innerHTML = html;
+/* =====================================================================
+   DASHBOARD: KPIs, status donut, project bars, timeline.
+   Everything is drawn into SVG using attributes only (no inline style),
+   then a single tween scales values from zero for the entrance animation.
+   ===================================================================== */
+function computeStats(tasks) {
+  const counts = Object.create(null);
+  STATUS_KEYS.forEach(function (k) { counts[k] = 0; });
+  tasks.forEach(function (t) { counts[t.status] += 1; });
+  const total = tasks.length;
+  return {
+    counts: counts, total: total,
+    overdue: tasks.filter(isOverdue).length,
+    pct: total ? Math.round(counts["Done"] / total * 100) : 0
+  };
 }
 
+function renderKpis(st) {
+  let html = '<div class="tile tile-ring"><svg class="ring" viewBox="0 0 120 120" role="img" aria-label="Completion ' + st.pct + ' percent">' +
+    '<circle class="track" cx="60" cy="60" r="48"/>' +
+    '<circle class="prog" cx="60" cy="60" r="48" pathLength="100" transform="rotate(-90 60 60)" data-ring data-l="' + st.pct + '" stroke-dasharray="' + st.pct + ' 100"/>' +
+    '<text x="60" y="69" data-count="' + st.pct + '" data-suffix="%">' + st.pct + '%</text></svg>' +
+    '<span class="lab"><span class="zh">完成率</span><br>Completion</span></div>';
+  COLUMNS.forEach(function (c) {
+    html += '<div class="tile ' + c.cls + '"><span class="lab"><span class="zh">' + escapeHtml(c.zh) + '</span>' + escapeHtml(c.key) + '</span>' +
+      '<span class="num" data-count="' + st.counts[c.key] + '">' + st.counts[c.key] + '</span></div>';
+  });
+  html += '<div class="tile tile-bad"><span class="lab"><span class="zh">逾期</span>Overdue</span>' +
+    '<span class="num" data-count="' + st.overdue + '">' + st.overdue + '</span></div>';
+  document.getElementById("kpis").innerHTML = html;
+}
+
+function renderDonut(st) {
+  let start = 0;
+  let arcs = "";
+  COLUMNS.forEach(function (c) {
+    const len = st.total ? st.counts[c.key] / st.total * 100 : 0;
+    if (len > 0) {
+      arcs += '<circle class="arc ' + c.cls + '" cx="60" cy="60" r="40" pathLength="100" transform="rotate(-90 60 60)" data-seq-arc data-s="' + start.toFixed(3) + '" data-l="' + len.toFixed(3) +
+        '" stroke-dasharray="' + len.toFixed(3) + ' 100" stroke-dashoffset="' + (-start).toFixed(3) + '"/>';
+    }
+    start += len;
+  });
+  let legend = "";
+  COLUMNS.forEach(function (c) {
+    legend += '<li class="' + c.cls + '"><span class="swatch"></span>' + escapeHtml(c.key) + '<b>' + st.counts[c.key] + '</b></li>';
+  });
+  document.getElementById("donut").innerHTML = '<div class="donut-row"><svg class="donut" viewBox="0 0 120 120" role="img" aria-label="Task status distribution">' +
+    '<circle class="track" cx="60" cy="60" r="40"/>' + arcs +
+    '<text class="c-num" x="60" y="62" data-count="' + st.total + '">' + st.total + '</text><text class="c-lab" x="60" y="76">TASKS · 任务</text></svg>' +
+    '<ul class="legend">' + legend + '</ul></div>';
+}
+
+function renderUpcoming() {
+  const open = state.tasks.filter(function (t) { return t.status !== "Done"; })
+    .sort(function (a, b) { return a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0; }).slice(0, 5);
+  let html = "";
+  open.forEach(function (t) {
+    const n = daysFromToday(t.dueDate);
+    const late = n < 0;
+    const label = late ? (-n) + "d overdue 逾期" : n === 0 ? "Due today" : "in " + n + "d";
+    html += '<li><span class="t">' + escapeHtml(t.title) + '</span><span class="m">' + escapeHtml(t.id) + " · " + escapeHtml(t.project) +
+      '</span><span class="d' + (late ? " late" : "") + '">' + escapeHtml(label) + '</span></li>';
+  });
+  document.getElementById("upcoming").innerHTML = html || '<li class="m">No open tasks.</li>';
+}
+
+function renderProjects() {
+  let html = "";
+  PROJECTS.forEach(function (p) {
+    const list = state.tasks.filter(function (t) { return t.project === p; });
+    const st = computeStats(list);
+    let health = "h-good", zh = "吉", word = "On track";
+    if (!list.length) { health = "h-none"; zh = "空"; word = "No tasks"; }
+    else if (st.overdue > 0) { health = "h-bad"; zh = "危"; word = "At risk"; }
+    else if (st.counts["Blocked"] > 0) { health = "h-watch"; zh = "慎"; word = "Watch"; }
+    let x = 0;
+    let segs = "";
+    COLUMNS.forEach(function (c) {
+      const w = list.length ? st.counts[c.key] / list.length * 100 : 0;
+      if (w > 0) {
+        segs += '<rect class="seg ' + c.cls + '" y="0" height="16" x="' + x.toFixed(3) + '" width="' + w.toFixed(3) + '" data-seq-w data-x="' + x.toFixed(3) + '" data-w="' + w.toFixed(3) + '"><title>' +
+          escapeHtml(c.key) + ": " + st.counts[c.key] + '</title></rect>';
+      }
+      x += w;
+    });
+    html += '<li class="proj"><div class="proj-name"><span class="stamp ' + health + '" title="' + escapeHtml(word) + '" aria-hidden="true">' + zh + '</span>' +
+      '<button type="button" data-action="filter-project" data-project="' + escapeHtml(p) + '">' + escapeHtml(p) + '</button></div>' +
+      '<svg class="proj-bar" viewBox="0 0 100 16" preserveAspectRatio="none" role="img" aria-label="' + escapeHtml(p) + ': ' + st.pct + ' percent complete, ' + escapeHtml(word) + '">' +
+      '<rect class="bg" x="0" y="0" width="100" height="16"/>' + segs + '</svg>' +
+      '<div class="proj-meta"><b>' + st.pct + '%</b> done · ' + list.length + (list.length === 1 ? ' task' : ' tasks') + (st.overdue ? ' · <span class="late">' + st.overdue + ' overdue</span>' : '') +
+      ' · ' + escapeHtml(word) + '</div></li>';
+  });
+  document.getElementById("projects").innerHTML = html;
+  let lg = "";
+  COLUMNS.forEach(function (c) { lg += '<li class="' + c.cls + '"><span class="swatch"></span>' + escapeHtml(c.key) + '</li>'; });
+  document.getElementById("projLegend").innerHTML = lg + '<li><span class="stamp h-bad" aria-hidden="true">危</span>At risk</li><li><span class="stamp h-watch" aria-hidden="true">慎</span>Watch</li><li><span class="stamp h-good" aria-hidden="true">吉</span>On track</li>';
+}
+
+function renderTimeline() {
+  const W = 1000, L = 176, R = 14, AXIS = 36, ROW = 22, PADL = 10;
+  let minD = 0, maxD = 0;
+  state.tasks.forEach(function (t) {
+    minD = Math.min(minD, daysFromToday(t.startDate));
+    maxD = Math.max(maxD, daysFromToday(t.dueDate) + 1);
+  });
+  minD -= 5; maxD += 7;
+  if (maxD - minD < 60) { maxD = minD + 60; }
+  const span = maxD - minD;
+  function x(d) { return L + (d - minD) / span * (W - L - R); }
+
+  const lanes = [];
+  let y = AXIS;
+  PROJECTS.forEach(function (p, li) {
+    const items = state.tasks.filter(function (t) { return t.project === p; }).map(function (t) {
+      return { t: t, s: daysFromToday(t.startDate), e: daysFromToday(t.dueDate) + 1 };
+    }).sort(function (a, b) { return a.s - b.s; });
+    const rows = [];
+    items.forEach(function (it) {
+      let r = 0;
+      while (r < rows.length && rows[r] > it.s) { r += 1; }
+      rows[r] = it.e + 1;
+      it.row = r;
+    });
+    const h = Math.max(1, rows.length) * ROW + PADL * 2;
+    lanes.push({ name: p, items: items, y: y, h: h, idx: li });
+    y += h;
+  });
+  const H = y + 8;
+
+  // month gridlines
+  let grid = "";
+  const base = parseISO(todayISO());
+  const first = new Date(base.getFullYear(), base.getMonth(), base.getDate() + minD);
+  const MONTHS_ZH = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
+  const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  let labelled = false;
+  for (let cur = new Date(first.getFullYear(), first.getMonth(), 1), guard = 0; guard < 40; guard++, cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1)) {
+    const off = Math.round((cur - base) / 86400000);
+    if (off > maxD) { break; }
+    const label = MONTHS_EN[cur.getMonth()] + " " + cur.getFullYear() + " · " + MONTHS_ZH[cur.getMonth()];
+    if (off >= minD) {
+      if (!labelled && off - minD > 14) {
+        const pm = new Date(cur.getFullYear(), cur.getMonth() - 1, 1);
+        grid += '<text class="mlab" x="' + (L + 6) + '" y="31">' + escapeHtml(MONTHS_EN[pm.getMonth()] + " · " + MONTHS_ZH[pm.getMonth()]) + '</text>';
+      }
+      labelled = true;
+      grid += '<line class="grid" x1="' + x(off).toFixed(1) + '" x2="' + x(off).toFixed(1) + '" y1="34" y2="' + (H - 6) + '"/>' +
+        '<text class="mlab" x="' + (x(off) + 6).toFixed(1) + '" y="31">' + escapeHtml(label) + '</text>';
+    }
+  }
+
+  let body = "";
+  lanes.forEach(function (ln, i) {
+    if (i % 2 === 0) { body += '<rect class="lane" x="0" y="' + ln.y + '" width="' + W + '" height="' + ln.h + '"/>'; }
+    body += '<text class="plab" x="10" y="' + (ln.y + ln.h / 2 + 4) + '">' + escapeHtml(ln.name) + '</text>';
+    ln.items.forEach(function (it) {
+      const t = it.t;
+      const bx = x(it.s), bw = Math.max(8, x(it.e) - x(it.s));
+      const by = ln.y + PADL + it.row * ROW;
+      const col = columnOf(t.status);
+      const late = isOverdue(t);
+      const tip = t.id + " · " + t.title + " (" + t.status + (late ? ", overdue" : "") + ") " + formatDate(t.startDate) + " to " + formatDate(t.dueDate);
+      body += '<g class="' + col.cls + '"><rect class="seg bar' + (late ? " late" : "") + '" rx="3" x="' + bx.toFixed(1) + '" y="' + by + '" height="16" width="' + bw.toFixed(1) +
+        '" data-bw="' + bw.toFixed(1) + '" data-d="' + (ln.idx * 0.1).toFixed(2) + '"><title>' + escapeHtml(tip) + '</title></rect>';
+      if (bw > 92) {
+        body += '<text class="btxt" x="' + (bx + 6).toFixed(1) + '" y="' + (by + 11.5) + '" data-fade>' + escapeHtml(t.id.slice(4)) + '</text>';
+      }
+      body += '</g>';
+    });
+  });
+
+  const tx = x(0);
+  const today = '<line class="today-line" x1="' + tx.toFixed(1) + '" x2="' + tx.toFixed(1) + '" y1="14" y2="' + (H - 6) + '"/>' +
+    '<rect class="today-tag" x="' + (tx - 34).toFixed(1) + '" y="0" width="68" height="15" rx="2"/>' +
+    '<text class="today-txt" x="' + tx.toFixed(1) + '" y="11">今日 TODAY</text>';
+
+  document.getElementById("timeline").innerHTML = '<svg class="tl" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Project timeline showing the start and due date of each task, grouped by project">' +
+    grid + body + today + '</svg>';
+  let lg = "";
+  COLUMNS.forEach(function (c) { lg += '<li class="' + c.cls + '"><span class="swatch"></span>' + escapeHtml(c.key) + '</li>'; });
+  document.getElementById("tlLegend").innerHTML = lg + '<li>Pulsing outline = overdue · Dashed line = today · Hover a bar for details</li>';
+}
+
+/* ----- entrance animation: one tween drives every dashboard element ----- */
+let tweenToken = 0;
+function easeOut(p) { return 1 - Math.pow(1 - p, 3); }
+function seg(p, a, b) { return clamp((p - a) / (b - a), 0, 1); }
+function applyProgress(p) {
+  document.querySelectorAll("[data-count]").forEach(function (el) {
+    el.textContent = Math.round(Number(el.dataset.count) * p) + (el.dataset.suffix || "");
+  });
+  document.querySelectorAll("[data-ring]").forEach(function (el) {
+    el.setAttribute("stroke-dasharray", (Number(el.dataset.l) * p).toFixed(3) + " 100");
+  });
+  document.querySelectorAll("[data-seq-arc]").forEach(function (el) {
+    el.setAttribute("stroke-dasharray", clamp(p * 100 - Number(el.dataset.s), 0, Number(el.dataset.l)).toFixed(3) + " 100");
+  });
+  document.querySelectorAll("[data-seq-w]").forEach(function (el) {
+    el.setAttribute("width", clamp(p * 100 - Number(el.dataset.x), 0, Number(el.dataset.w)).toFixed(3));
+  });
+  document.querySelectorAll("[data-bw]").forEach(function (el) {
+    const d = Number(el.dataset.d) || 0;
+    el.setAttribute("width", (Number(el.dataset.bw) * seg(p, d, Math.min(1, d + 0.4))).toFixed(2));
+  });
+  document.querySelectorAll("[data-fade]").forEach(function (el) {
+    el.setAttribute("opacity", seg(p, 0.7, 1).toFixed(2));
+  });
+}
+function runTween(duration) {
+  const token = ++tweenToken;
+  if (REDUCED || duration <= 0) { applyProgress(1); return; }
+  applyProgress(0);
+  const t0 = performance.now();
+  function frame(now) {
+    if (token !== tweenToken) { return; }
+    const raw = clamp((now - t0) / duration, 0, 1);
+    applyProgress(easeOut(raw));
+    if (raw < 1) { requestAnimationFrame(frame); }
+  }
+  requestAnimationFrame(frame);
+}
+
+function renderDashboard(animate) {
+  const st = computeStats(state.tasks);
+  renderKpis(st);
+  renderDonut(st);
+  renderUpcoming();
+  renderProjects();
+  renderTimeline();
+  document.getElementById("today").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  tweenToken += 1;
+  if (animate) { runTween(1500); } else { applyProgress(1); }
+}
+
+/* ===== Board rendering ===== */
 function renderCard(task) {
   const overdue = isOverdue(task);
-  const pClass = task.priority.toLowerCase();
+  const pClass = PRIORITIES.indexOf(task.priority) === -1 ? "low" : task.priority.toLowerCase();
+  const eid = escapeHtml(task.id);
   let actions;
   if (state.pendingDeleteId === task.id) {
     actions = '<span class="confirm-delete">Delete? ' +
-      '<button type="button" data-action="delete-yes" data-id="' + escapeHtml(task.id) + '">Yes</button>' +
-      '<button type="button" data-action="delete-no" data-id="' + escapeHtml(task.id) + '">No</button></span>';
+      '<button type="button" data-action="delete-yes" data-id="' + eid + '">Yes</button>' +
+      '<button type="button" data-action="delete-no" data-id="' + eid + '">No</button></span>';
   } else {
-    actions = '<button type="button" class="move-btn" data-action="toggle-move" data-id="' + escapeHtml(task.id) + '" aria-expanded="' + (state.openMoveId === task.id) + '">Move ▸</button>';
+    actions = '<button type="button" class="move-btn" data-action="toggle-move" data-id="' + eid + '" aria-expanded="' + (state.openMoveId === task.id) + '">Move ▸</button>';
   }
   let menu = "";
   if (state.openMoveId === task.id) {
-    menu = '<div class="move-menu" role="group" aria-label="Move ' + escapeHtml(task.id) + ' to">';
+    menu = '<div class="move-menu" role="group" aria-label="Move ' + eid + ' to">';
     COLUMNS.forEach(function (c) {
       if (c.key !== task.status) {
-        menu += '<button type="button" data-action="move" data-id="' + escapeHtml(task.id) + '" data-status="' + escapeHtml(c.key) + '">' + escapeHtml(c.key) + '</button>';
+        menu += '<button type="button" data-action="move" data-id="' + eid + '" data-status="' + escapeHtml(c.key) + '">' + escapeHtml(c.key) + '</button>';
       }
     });
     menu += '</div>';
   }
-  return '<article class="card p-' + pClass + '" draggable="true" data-id="' + escapeHtml(task.id) + '">' +
-    '<div class="card-top"><span class="card-id">' + escapeHtml(task.id) + '</span>' +
-    '<button type="button" class="icon-btn" data-action="delete" data-id="' + escapeHtml(task.id) + '" aria-label="Delete task ' + escapeHtml(task.id) + '">×</button></div>' +
+  return '<article class="card p-' + pClass + '" draggable="true" data-id="' + eid + '">' +
+    '<div class="card-top"><span class="card-id">' + eid + '</span>' +
+    '<button type="button" class="icon-btn" data-action="delete" data-id="' + eid + '" aria-label="Delete task ' + eid + '">×</button></div>' +
     '<h3 class="card-title">' + escapeHtml(task.title) + '</h3>' +
     '<div class="card-meta">' + escapeHtml(task.project) + '</div>' +
     '<div class="card-meta">Assignee: ' + escapeHtml(task.assignee) + '</div>' +
     '<div class="card-meta">Due: ' + escapeHtml(formatDate(task.dueDate)) + '</div>' +
-    '<div class="card-row"><span class="pill pill-' + pClass + '">' + escapeHtml(task.priority) + '</span>' +
+    '<div class="card-row"><span class="pseal" aria-hidden="true">' + escapeHtml(PRIORITY_ZH[task.priority] || "低") + '</span><span class="pill">' + escapeHtml(task.priority) + '</span>' +
     '<span class="tag">' + escapeHtml(task.category) + '</span>' +
-    (overdue ? '<span class="badge-overdue">Overdue</span>' : '') + '</div>' +
+    (overdue ? '<span class="badge-overdue">逾期 Overdue</span>' : '') + '</div>' +
     '<div class="card-row">' + actions + '</div>' + menu +
     '</article>';
 }
@@ -368,90 +814,112 @@ function renderBoard() {
   let html = "";
   COLUMNS.forEach(function (c) {
     const items = visible.filter(function (t) { return t.status === c.key; });
-    html += '<section class="column" data-status="' + escapeHtml(c.key) + '" aria-label="' + escapeHtml(c.key) + ' column">' +
-      '<div class="column-header"><div><h2>' + escapeHtml(c.key) + '</h2><div class="column-sub">' + escapeHtml(c.sub) + '</div></div>' +
+    html += '<section class="column ' + c.cls + '" data-status="' + escapeHtml(c.key) + '" aria-label="' + escapeHtml(c.key) + ' column">' +
+      '<div class="column-header"><div><h2><span class="zh">' + escapeHtml(c.zh) + '</span>' + escapeHtml(c.key) + '</h2><div class="column-sub">' + escapeHtml(c.sub) + '</div></div>' +
       '<span class="count" aria-label="' + items.length + ' tasks">' + items.length + '</span></div>' +
-      '<div class="cards">' + (items.length ? items.map(renderCard).join("") : '<div class="empty">No tasks</div>') + '</div></section>';
+      '<div class="cards">' + (items.length ? items.map(renderCard).join("") : '<div class="empty">空 · No tasks</div>') + '</div></section>';
   });
   document.getElementById("board").innerHTML = html;
-  renderSummary();
 }
 
-/* ===== Task operations ===== */
-function moveTask(id, status) {
-  const t = state.tasks.find(function (x) { return x.id === id; });
-  if (t && COLUMNS.some(function (c) { return c.key === status; })) { t.status = status; }
-  state.openMoveId = null;
+function renderAll(animate) {
   renderBoard();
+  renderDashboard(animate);
+}
+
+/* ===== Task operations (every input is re-validated; DOM values are untrusted) ===== */
+function moveTask(id, status) {
+  const t = findTask(id);
+  if (t && STATUS_KEYS.indexOf(status) !== -1) { t.status = status; }
+  state.openMoveId = null;
+  renderAll(false);
 }
 function deleteTask(id) {
   state.tasks = state.tasks.filter(function (t) { return t.id !== id; });
   state.pendingDeleteId = null;
-  renderBoard();
+  renderAll(false);
 }
 function addTask(data) {
+  const today = todayISO();
   const task = {
     id: formatId(state.nextId++), title: data.title, description: data.description, project: data.project,
-    category: data.category, assignee: data.assignee, priority: data.priority, dueDate: data.dueDate, status: data.status
+    category: data.category, assignee: data.assignee, priority: data.priority,
+    startDate: data.dueDate < today ? data.dueDate : today, dueDate: data.dueDate, status: data.status
   };
   state.tasks.push(task);
-  renderBoard();
+  renderAll(false);
   return task;
 }
 
-/* ===== Toasts ===== */
+/* ===== Toasts (capped so a flood of events cannot fill the screen) ===== */
 function showToast(message, kind) {
+  const host = document.getElementById("toasts");
+  while (host.children.length >= 4) { host.removeChild(host.firstChild); }
   const el = document.createElement("div");
   el.className = "toast" + (kind === "warn" ? " warn" : "");
   el.textContent = message;
-  document.getElementById("toasts").appendChild(el);
+  host.appendChild(el);
   setTimeout(function () { el.remove(); }, 4500);
 }
 
 /* ===== FormSubmit notification ===== */
+function notifyConfigured() {
+  // Random alias only (letters/digits, no "@", no "_"): a raw email or the placeholder is rejected.
+  return /^https:\/\/formsubmit\.co\/ajax\/[A-Za-z0-9]{8,}$/.test(FORMSUBMIT_ENDPOINT);
+}
 async function notifyNewTask(task) {
-  const res = await fetch(FORMSUBMIT_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({
-      _subject: "[IT PMO] New task " + task.id + ": " + task.title,
-      _template: "table",
-      _captcha: "false",
-      "Task ID": task.id,
-      Title: task.title,
-      Description: task.description,
-      Project: task.project,
-      Category: task.category,
-      Assignee: task.assignee,
-      Priority: task.priority,
-      "Due Date": task.dueDate,
-      Status: task.status,
-      "Submitted At": new Date().toISOString()
-    })
-  });
-  if (!res.ok) throw new Error("FormSubmit failed: " + res.status);
-  return res.json();
+  if (!notifyConfigured()) { return null; }          // placeholder address: make no request
+  const ctl = new AbortController();
+  const timer = setTimeout(function () { ctl.abort(); }, 8000);
+  try {
+    const res = await fetch(FORMSUBMIT_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      credentials: "omit", referrerPolicy: "no-referrer", signal: ctl.signal,
+      body: JSON.stringify({
+        _subject: "[IT PMO] New task " + task.id + ": " + cleanText(task.title, 80),
+        _template: "table",
+        _captcha: "false",
+        _honey: "",                                   // honeypot: FormSubmit drops submissions where this is filled
+        "Task ID": task.id,
+        Title: task.title,
+        Description: task.description,
+        Project: task.project,
+        Category: task.category,
+        Assignee: task.assignee,
+        Priority: task.priority,
+        "Due Date": task.dueDate,
+        Status: task.status,
+        "Submitted At": new Date().toISOString()
+      })
+    });
+    if (!res.ok) { throw new Error("FormSubmit failed: " + res.status); }
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /* ===== Form validation ===== */
 function readForm() {
   const f = document.getElementById("taskForm");
   return {
-    title: f.title.value.trim(), description: f.description.value.trim(), project: f.project.value,
-    category: f.category.value, assignee: f.assignee.value.trim(), priority: f.priority.value,
-    dueDate: f.dueDate.value, status: f.status.value
+    title: cleanText(f.title.value, LIMITS.title), description: cleanText(f.description.value, LIMITS.description, true),
+    project: f.project.value, category: f.category.value, assignee: cleanText(f.assignee.value, LIMITS.assignee),
+    priority: f.priority.value, dueDate: f.dueDate.value, status: f.status.value
   };
 }
 function validateForm(d) {
   const e = {};
   if (!d.title) e.title = "Task title is required.";
-  else if (d.title.length > 80) e.title = "Title must be 80 characters or fewer.";
-  if (d.description.length > 500) e.description = "Description must be 500 characters or fewer.";
-  if (!d.project) e.project = "Select a project.";
-  if (!d.category) e.category = "Select a category.";
+  if (PROJECTS.indexOf(d.project) === -1) e.project = "Select a project.";
+  if (CATEGORIES.indexOf(d.category) === -1) e.category = "Select a category.";
   if (!d.assignee) e.assignee = "Assignee is required.";
-  if (!d.dueDate) e.dueDate = "Due date is required.";
+  if (PRIORITIES.indexOf(d.priority) === -1) e.priority = "Select a priority.";
+  if (STATUS_KEYS.indexOf(d.status) === -1) e.status = "Select a status.";
+  if (!isValidISO(d.dueDate)) e.dueDate = "Enter a valid due date.";
   else if (d.dueDate < todayISO()) e.dueDate = "Due date cannot be in the past.";
+  else if (daysFromToday(d.dueDate) > LIMITS.maxDueDays) e.dueDate = "Due date must be within 10 years.";
   return e;
 }
 function showErrors(errors) {
@@ -475,7 +943,7 @@ function resetForm() {
   fillSelect("project", PROJECTS, PROJECTS[0]);
   fillSelect("category", CATEGORIES, CATEGORIES[0]);
   fillSelect("priority", PRIORITIES, "Medium");
-  fillSelect("status", COLUMNS.map(function (c) { return c.key; }), "Backlog");
+  fillSelect("status", STATUS_KEYS, "Backlog");
   showErrors({});
 }
 function openModal() {
@@ -487,17 +955,27 @@ function closeModal() {
   document.getElementById("modalBackdrop").classList.remove("open");
   document.getElementById("openAdd").focus();
 }
+function trapFocus(ev) {
+  const modal = document.querySelector(".modal");
+  const nodes = modal.querySelectorAll("input, select, textarea, button:not(:disabled)");
+  if (!nodes.length) { return; }
+  const first = nodes[0], last = nodes[nodes.length - 1];
+  if (ev.shiftKey && document.activeElement === first) { ev.preventDefault(); last.focus(); }
+  else if (!ev.shiftKey && document.activeElement === last) { ev.preventDefault(); first.focus(); }
+}
 
 async function handleSubmit(ev) {
   ev.preventDefault();
   const data = readForm();
   const errors = validateForm(data);
+  if (state.tasks.length >= LIMITS.tasks) { errors.title = "The board is full (" + LIMITS.tasks + " tasks). Delete a task first."; }
+  if (Date.now() - state.lastAddAt < 700) { return; }   // ignore double submits
   showErrors(errors);
   if (Object.keys(errors).length) {
-    const first = Object.keys(errors)[0];
-    document.getElementById(first).focus();
+    document.getElementById(Object.keys(errors)[0]).focus();
     return;
   }
+  state.lastAddAt = Date.now();
   const btn = document.getElementById("submitBtn");
   btn.disabled = true;
   btn.textContent = "Sending…";
@@ -515,7 +993,14 @@ async function handleSubmit(ev) {
   }
 }
 
-/* ===== Wiring: board events (delegation), drag and drop, filters ===== */
+/* ===== Wiring: delegation for board and dashboard, drag and drop, filters ===== */
+function focusCard(id) {
+  const card = document.querySelector('.card[data-id="' + CSS.escape(id) + '"] button:not(.icon-btn)');
+  if (card) card.focus();
+}
+function clearDropTargets() {
+  document.querySelectorAll(".column.drop-target").forEach(function (c) { c.classList.remove("drop-target"); });
+}
 function wireBoard() {
   const board = document.getElementById("board");
 
@@ -523,6 +1008,7 @@ function wireBoard() {
     const btn = ev.target.closest("button[data-action]");
     if (!btn) return;
     const id = btn.dataset.id;
+    if (!findTask(id)) return;
     const action = btn.dataset.action;
     if (action === "delete") { state.pendingDeleteId = id; state.openMoveId = null; renderBoard(); focusCard(id); }
     else if (action === "delete-no") { state.pendingDeleteId = null; renderBoard(); focusCard(id); }
@@ -531,12 +1017,14 @@ function wireBoard() {
     else if (action === "move") { moveTask(id, btn.dataset.status); }
   });
 
+  /* Drag and drop uses a private MIME type plus state.draggingId, so text or files
+     dragged in from other pages or apps can never create or move a card. */
   board.addEventListener("dragstart", function (ev) {
     const card = ev.target.closest(".card");
-    if (!card) return;
+    if (!card || !findTask(card.dataset.id)) return;
     state.draggingId = card.dataset.id;
     ev.dataTransfer.effectAllowed = "move";
-    ev.dataTransfer.setData("text/plain", card.dataset.id);
+    ev.dataTransfer.setData("application/x-pmo-task", card.dataset.id);
     card.classList.add("dragging");
   });
   board.addEventListener("dragend", function () {
@@ -547,7 +1035,7 @@ function wireBoard() {
   });
   board.addEventListener("dragover", function (ev) {
     const col = ev.target.closest(".column");
-    if (!col) return;
+    if (!col || !state.draggingId) return;
     ev.preventDefault();
     ev.dataTransfer.dropEffect = "move";
     clearDropTargets();
@@ -559,39 +1047,43 @@ function wireBoard() {
   });
   board.addEventListener("drop", function (ev) {
     const col = ev.target.closest(".column");
-    if (!col) return;
+    if (!col || !state.draggingId) return;
     ev.preventDefault();
-    const id = ev.dataTransfer.getData("text/plain") || state.draggingId;
+    const id = state.draggingId;
     state.draggingId = null;
     moveTask(id, col.dataset.status);
   });
-}
-function clearDropTargets() {
-  document.querySelectorAll(".column.drop-target").forEach(function (c) { c.classList.remove("drop-target"); });
-}
-function focusCard(id) {
-  const card = document.querySelector('.card[data-id="' + id + '"] button:not(.icon-btn)');
-  if (card) card.focus();
+
+  document.getElementById("projects").addEventListener("click", function (ev) {
+    const btn = ev.target.closest('button[data-action="filter-project"]');
+    if (!btn || PROJECTS.indexOf(btn.dataset.project) === -1) return;
+    document.getElementById("fProject").value = btn.dataset.project;
+    syncFilters();
+    document.getElementById("h-board").scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "start" });
+  });
+  document.getElementById("replay").addEventListener("click", function () { renderDashboard(true); });
 }
 
+function syncFilters() {
+  state.filters.project = document.getElementById("fProject").value;
+  state.filters.priority = document.getElementById("fPriority").value;
+  state.filters.assignee = document.getElementById("fAssignee").value.slice(0, LIMITS.assignee);
+  renderBoard();
+}
 function wireFilters() {
-  fillSelect("fProject", ["All projects"].concat(PROJECTS), "All projects");
-  document.getElementById("fProject").innerHTML = '<option value="">All projects</option>' + PROJECTS.map(function (p) { return '<option value="' + escapeHtml(p) + '">' + escapeHtml(p) + '</option>'; }).join("");
-  document.getElementById("fPriority").innerHTML = '<option value="">All priorities</option>' + PRIORITIES.map(function (p) { return '<option value="' + escapeHtml(p) + '">' + escapeHtml(p) + '</option>'; }).join("");
-  function sync() {
-    state.filters.project = document.getElementById("fProject").value;
-    state.filters.priority = document.getElementById("fPriority").value;
-    state.filters.assignee = document.getElementById("fAssignee").value;
-    renderBoard();
+  function opts(first, list) {
+    return '<option value="">' + first + '</option>' + list.map(function (p) { return '<option value="' + escapeHtml(p) + '">' + escapeHtml(p) + '</option>'; }).join("");
   }
-  document.getElementById("fProject").addEventListener("change", sync);
-  document.getElementById("fPriority").addEventListener("change", sync);
-  document.getElementById("fAssignee").addEventListener("input", sync);
+  document.getElementById("fProject").innerHTML = opts("All projects", PROJECTS);
+  document.getElementById("fPriority").innerHTML = opts("All priorities", PRIORITIES);
+  document.getElementById("fProject").addEventListener("change", syncFilters);
+  document.getElementById("fPriority").addEventListener("change", syncFilters);
+  document.getElementById("fAssignee").addEventListener("input", syncFilters);
   document.getElementById("clearFilters").addEventListener("click", function () {
     document.getElementById("fProject").value = "";
     document.getElementById("fPriority").value = "";
     document.getElementById("fAssignee").value = "";
-    sync();
+    syncFilters();
   });
 }
 
@@ -608,11 +1100,289 @@ function init() {
     if (ev.target.id === "modalBackdrop") closeModal();
   });
   document.addEventListener("keydown", function (ev) {
-    if (ev.key === "Escape" && document.getElementById("modalBackdrop").classList.contains("open")) closeModal();
+    const open = document.getElementById("modalBackdrop").classList.contains("open");
+    if (!open) return;
+    if (ev.key === "Escape") closeModal();
+    else if (ev.key === "Tab") trapFocus(ev);
   });
-  renderBoard();
+  renderAll(true);
+  wireAssistant();
+}
+
+/* ===== Panda IT assistant (voice greeting + WhatsApp link) ===== */
+function wireAssistant() {
+  const fab = document.getElementById("assistFab");
+  const bubble = document.getElementById("assistBubble");
+  const note = document.getElementById("assistNote");
+  const GREETING = "I am your IT assistant, how can I help you?";
+  const synth = window.speechSynthesis;
+  function speak() {
+    if (!synth || typeof SpeechSynthesisUtterance === "undefined") { note.hidden = false; return; }
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(GREETING);
+    u.lang = "en-US";
+    u.rate = 0.95;
+    u.pitch = 1.15;
+    synth.speak(u);
+  }
+  function setOpen(open) {
+    bubble.hidden = !open;
+    fab.setAttribute("aria-expanded", String(open));
+    if (open) speak(); else if (synth) synth.cancel();
+  }
+  fab.addEventListener("click", function () { setOpen(bubble.hidden); });
+  document.getElementById("assistClose").addEventListener("click", function () { setOpen(false); fab.focus(); });
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape" && !bubble.hidden) { setOpen(false); fab.focus(); }
+  });
 }
 init();
 </script>
-</body>
-</html>
+<script>
+/* sudoku-gate: inlined copy of .claude/hooks/sudoku-gate.js (keep in sync) */
+/* sudoku-gate hook
+ * After the visitor has been on the page for GATE_DELAY_MS (10 s), a modal
+ * dialog opens with a simple Sudoku. The rest of the page is inert and the
+ * dialog cannot be dismissed (no close button, Escape and backdrop clicks are
+ * ignored) until the grid is filled in correctly. Shows once per page load.
+ * Self-contained: injects its own CSS and DOM. No storage, no network.
+ */
+(function () {
+  "use strict";
+
+  const GATE_DELAY_MS = 10000;
+  const MAX_HINTS = 3; // hints per puzzle; each fills one correct square
+  const BLANKS = 34; // empty cells in the generated puzzle (easy)
+  const SOLVED_BASE = "534678912672195348198342567859761423426853791713924856961537284287419635345286179";
+
+  /* ---------- puzzle ---------- */
+  function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  // Relabel digits of a known valid grid -> a different, still valid grid.
+  function makePuzzle() {
+    const perm = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    const full = SOLVED_BASE.split("").map(function (c) { return perm[Number(c) - 1]; });
+    const blanks = {};
+    shuffle(full.map(function (_, i) { return i; })).slice(0, BLANKS).forEach(function (i) { blanks[i] = true; });
+    return {
+      solution: full,
+      cells: full.map(function (v, i) { return { value: blanks[i] ? 0 : v, given: !blanks[i] }; })
+    };
+  }
+
+  // Cells that clash with another cell in the same row, column or box.
+  function findConflicts(vals) {
+    const bad = {};
+    for (let i = 0; i < 81; i++) {
+      if (!vals[i]) continue;
+      for (let j = i + 1; j < 81; j++) {
+        if (vals[j] !== vals[i]) continue;
+        const sameRow = Math.floor(i / 9) === Math.floor(j / 9);
+        const sameCol = i % 9 === j % 9;
+        const sameBox = Math.floor(i / 27) === Math.floor(j / 27) && Math.floor((i % 9) / 3) === Math.floor((j % 9) / 3);
+        if (sameRow || sameCol || sameBox) { bad[i] = true; bad[j] = true; }
+      }
+    }
+    return bad;
+  }
+
+  /* ---------- UI ---------- */
+  const CSS = [
+    ".sg-backdrop{position:fixed;inset:0;z-index:100;background:rgba(20,12,4,.78);display:flex;align-items:center;justify-content:center;padding:12px;overflow-y:auto}",
+    ".sg-dialog{background:var(--card,#fbf5e4);color:var(--ink,#1f1a14);border:1px solid var(--gold,#a07a1c);outline:1px solid var(--line,#cbb98f);outline-offset:-6px;border-radius:3px;width:100%;max-width:420px;padding:22px;font-family:var(--sans,system-ui,sans-serif)}",
+    ".sg-dialog h2{margin:0 0 6px;font:700 20px var(--serif,Georgia,serif);color:var(--cinnabar,#a61f1a);letter-spacing:.05em}",
+    ".sg-dialog p{margin:0 0 12px;font-size:14px;color:var(--ink-2,#4a4034)}",
+    ".sg-grid{display:grid;grid-template-columns:repeat(9,1fr);border:2px solid var(--ink,#1f1a14);margin:0 auto 12px;max-width:380px;background:var(--paper,#f1e7cf)}",
+    ".sg-cell{box-sizing:border-box;width:100%;aspect-ratio:1;min-width:0;padding:0;margin:0;text-align:center;font:600 18px var(--sans,system-ui,sans-serif);color:var(--indigo,#2b4a72);background:var(--card,#fbf5e4);border:1px solid var(--line,#cbb98f);border-radius:0}",
+    ".sg-cell.sg-given{background:var(--paper-2,#e6d9b8);color:var(--ink,#1f1a14);font-weight:700}",
+    ".sg-cell.sg-r{border-right:2px solid var(--ink,#1f1a14)}",
+    ".sg-cell.sg-b{border-bottom:2px solid var(--ink,#1f1a14)}",
+    ".sg-cell.sg-hint{background:var(--paper-2,#e6d9b8);color:var(--gold,#a07a1c);font-weight:700}",
+    ".sg-cell.sg-wrong{background:var(--cinnabar,#a61f1a);color:var(--on-fill,#fbf5e4)}",
+    ".sg-cell:focus{outline:2px solid var(--focus,#1b5fd0);outline-offset:-2px;position:relative}",
+    ".sg-msg{min-height:20px;font-size:13px;margin-bottom:10px}",
+    ".sg-msg.sg-ok{color:var(--jade,#2d6a57);font-weight:600}",
+    ".sg-btn{font:600 14px var(--sans,system-ui,sans-serif);padding:9px 18px;border-radius:3px;border:1px solid var(--jade,#2d6a57);background:var(--jade,#2d6a57);color:var(--on-fill,#fbf5e4);cursor:pointer}",
+    ".sg-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}",
+    ".sg-time{font:600 16px var(--mono,ui-monospace,Consolas,monospace);color:var(--ink,#1f1a14);font-variant-numeric:tabular-nums;white-space:nowrap}",
+    ".sg-actions{display:flex;justify-content:space-between;gap:10px}",
+    ".sg-btn.sg-alt{background:transparent;color:var(--ink,#1f1a14);border-color:var(--gold,#a07a1c)}",
+    ".sg-btn:disabled{opacity:.45;cursor:not-allowed}",
+    ".sg-btn:focus-visible{outline:2px solid var(--focus,#1b5fd0);outline-offset:2px}",
+    "@media (max-width:420px){.sg-cell{font-size:15px}.sg-dialog{padding:16px}}"
+  ].join("");
+
+  let opened = false;
+
+  function openGate() {
+    if (opened) return;
+    opened = true;
+
+    // Constructable stylesheet: allowed under a strict style-src CSP (an injected <style> is not).
+    let style = null, sheet = null;
+    if (window.CSSStyleSheet && "adoptedStyleSheets" in document) {
+      sheet = new CSSStyleSheet();
+      sheet.replaceSync(CSS);
+      document.adoptedStyleSheets = document.adoptedStyleSheets.concat([sheet]);
+    } else {
+      style = document.createElement("style");
+      style.textContent = CSS;
+      document.head.appendChild(style);
+    }
+
+    const made = makePuzzle();
+    const puzzle = made.cells;
+    const solution = made.solution;
+    const backdrop = document.createElement("div");
+    backdrop.className = "sg-backdrop";
+    backdrop.innerHTML =
+      '<div class="sg-dialog" role="dialog" aria-modal="true" aria-labelledby="sgTitle" aria-describedby="sgDesc">' +
+      '<div class="sg-head"><h2 id="sgTitle">Quick Sudoku break</h2>' +
+      '<span class="sg-time" id="sgTime" role="timer" aria-label="Time elapsed">00:00</span></div>' +
+      '<p id="sgDesc">Fill every square so each row, column and 3×3 box holds 1–9 once. Solve it to continue.</p>' +
+      '<div class="sg-grid" id="sgGrid" role="group" aria-label="Sudoku grid"></div>' +
+      '<div class="sg-msg" id="sgMsg" aria-live="polite"></div>' +
+      '<div class="sg-actions">' +
+      '<button type="button" class="sg-btn sg-alt" id="sgHint">Hint (' + MAX_HINTS + ' left)</button>' +
+      '<button type="button" class="sg-btn" id="sgGo" disabled>Continue</button></div></div>';
+
+    const grid = backdrop.querySelector("#sgGrid");
+    const msg = backdrop.querySelector("#sgMsg");
+    const go = backdrop.querySelector("#sgGo");
+    const hintBtn = backdrop.querySelector("#sgHint");
+    const timeEl = backdrop.querySelector("#sgTime");
+    let hintsLeft = MAX_HINTS;
+    const startedAt = Date.now();
+    function fmt() {
+      const t = Math.floor((Date.now() - startedAt) / 1000);
+      return String(Math.floor(t / 60)).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0");
+    }
+    let timer = window.setInterval(function () { timeEl.textContent = fmt(); }, 1000);
+    function stopTimer() {
+      if (timer) { window.clearInterval(timer); timer = null; }
+      timeEl.textContent = fmt();
+    }
+    const cells = [];
+
+    puzzle.forEach(function (p, i) {
+      const row = Math.floor(i / 9), col = i % 9;
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.inputMode = "numeric";
+      inp.maxLength = 1;
+      inp.autocomplete = "off";
+      inp.className = "sg-cell" + (p.given ? " sg-given" : "") + (col % 3 === 2 && col < 8 ? " sg-r" : "") + (row % 3 === 2 && row < 8 ? " sg-b" : "");
+      inp.setAttribute("aria-label", "Row " + (row + 1) + ", column " + (col + 1) + (p.given ? ", given" : ""));
+      inp.dataset.i = String(i);
+      if (p.given) { inp.value = String(p.value); inp.readOnly = true; }
+      grid.appendChild(inp);
+      cells.push(inp);
+    });
+
+    function values() {
+      return cells.map(function (c) { return Number(c.value) || 0; });
+    }
+
+    function refresh() {
+      const vals = values();
+      const bad = findConflicts(vals);
+      cells.forEach(function (c, i) { c.classList.toggle("sg-wrong", !!bad[i]); });
+      const full = vals.every(function (v) { return v > 0; });
+      const solved = full && Object.keys(bad).length === 0;
+      go.disabled = !solved;
+      if (solved) stopTimer();
+      hintBtn.disabled = solved || hintsLeft === 0;
+      msg.className = "sg-msg" + (solved ? " sg-ok" : "");
+      msg.textContent = solved ? "Solved in " + fmt() + "! Nicely done." :
+        Object.keys(bad).length ? "Red squares clash with another square in the same row, column or box." : "";
+      return solved;
+    }
+
+    // Hint: fill one empty (or wrong) square with its correct value, then lock it.
+    hintBtn.addEventListener("click", function () {
+      if (hintsLeft === 0) return;
+      const open = [];
+      cells.forEach(function (c, i) { if (!c.readOnly && Number(c.value) !== solution[i]) open.push(i); });
+      if (!open.length) return;
+      const i = open[Math.floor(Math.random() * open.length)];
+      cells[i].value = String(solution[i]);
+      cells[i].readOnly = true;
+      cells[i].classList.add("sg-hint");
+      cells[i].setAttribute("aria-label", cells[i].getAttribute("aria-label") + ", hint");
+      hintsLeft--;
+      hintBtn.textContent = "Hint (" + hintsLeft + " left)";
+      cells[i].focus();
+      refresh();
+    });
+
+    grid.addEventListener("input", function (ev) {
+      const t = ev.target;
+      if (!/^[1-9]$/.test(t.value)) t.value = "";
+      refresh();
+    });
+
+    grid.addEventListener("keydown", function (ev) {
+      const t = ev.target;
+      if (!t.classList.contains("sg-cell")) return;
+      const i = Number(t.dataset.i);
+      const moves = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -9, ArrowDown: 9 };
+      if (moves[ev.key] !== undefined) {
+        const n = i + moves[ev.key];
+        if (n >= 0 && n < 81 && !(Math.abs(moves[ev.key]) === 1 && Math.floor(n / 9) !== Math.floor(i / 9))) {
+          cells[n].focus();
+          ev.preventDefault();
+        }
+      } else if ((ev.key === "Backspace" || ev.key === "Delete") && !t.readOnly) {
+        t.value = "";
+        refresh();
+        ev.preventDefault();
+      }
+    });
+
+    // Make the rest of the page unreachable while the gate is up.
+    const inerted = [];
+    Array.prototype.forEach.call(document.body.children, function (el) {
+      if (!el.inert) { el.inert = true; inerted.push(el); }
+    });
+    document.body.appendChild(backdrop);
+
+    // Cannot be dismissed: swallow Escape, keep Tab inside the dialog.
+    function onKey(ev) {
+      if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); }
+      else if (ev.key === "Tab") {
+        const f = Array.prototype.filter.call(backdrop.querySelectorAll("input,button"), function (e) {
+          return !e.disabled && !e.readOnly;
+        });
+        if (!f.length) { ev.preventDefault(); return; }
+        const first = f[0], last = f[f.length - 1];
+        if (!backdrop.contains(document.activeElement)) { first.focus(); ev.preventDefault(); }
+        else if (ev.shiftKey && document.activeElement === first) { last.focus(); ev.preventDefault(); }
+        else if (!ev.shiftKey && document.activeElement === last) { first.focus(); ev.preventDefault(); }
+      }
+    }
+    document.addEventListener("keydown", onKey, true);
+
+    go.addEventListener("click", function () {
+      if (!refresh()) return;
+      stopTimer();
+      document.removeEventListener("keydown", onKey, true);
+      backdrop.remove();
+      if (style) style.remove();
+      if (sheet) document.adoptedStyleSheets = document.adoptedStyleSheets.filter(function (s) { return s !== sheet; });
+      inerted.forEach(function (el) { el.inert = false; });
+    });
+
+    const firstEmpty = cells.find(function (c) { return !c.readOnly; });
+    if (firstEmpty) firstEmpty.focus();
+  }
+
+  window.setTimeout(openGate, GATE_DELAY_MS);
+})();
+</script>
+</body></html>
